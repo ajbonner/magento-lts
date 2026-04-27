@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-// total 14354 errors
+// total 23693 errors
 
 return ['includes' => [
     __DIR__ . '/argument.type.php',
@@ -62,6 +62,11 @@ return ['includes' => [
     __DIR__ . '/methodTag.deprecatedClass.php',
     __DIR__ . '/minus.leftNonNumeric.php',
     __DIR__ . '/minus.rightNonNumeric.php',
+    __DIR__ . '/missingType.generics.php',
+    __DIR__ . '/missingType.iterableValue.php',
+    __DIR__ . '/missingType.parameter.php',
+    __DIR__ . '/missingType.property.php',
+    __DIR__ . '/missingType.return.php',
     __DIR__ . '/notEqual.notAllowed.php',
     __DIR__ . '/notIdentical.alwaysTrue.php',
     __DIR__ . '/offsetAccess.nonOffsetAccessible.php',
@@ -75,7 +80,6 @@ return ['includes' => [
     __DIR__ . '/return.empty.php',
     __DIR__ . '/return.missing.php',
     __DIR__ . '/return.type.php',
-    __DIR__ . '/return.void.php',
     __DIR__ . '/staticMethod.deprecated.php',
     __DIR__ . '/staticMethod.notFound.php',
     __DIR__ . '/switch.type.php',
