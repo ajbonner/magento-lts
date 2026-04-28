@@ -227,7 +227,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     protected function _getQuotes()
     {
         $this->_result = Mage::getModel('shipping/rate_result');
-        $mapped = $this->_requestRates($this->_buildRatePayload());
+        $this->_rawRequest ??= new Varien_Object();
+        $mapped = $this->_requestRates($this->_buildRatePayload($this->_rawRequest));
 
         $prepared = $this->_buildRateResult($mapped);
         $this->_result->append($prepared);
@@ -287,14 +288,12 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     }
 
     /**
+     * @param  Varien_Object $request
      * @return array<string, mixed[]>
      */
-    protected function _buildRatePayload(): array
+    protected function _buildRatePayload(Varien_Object $request): array
     {
-        return $this->_getRequestBuilder()->buildRatePayload(
-            $this->_rawRequest,
-            $this->getCurrencyCode(),
-        );
+        return $this->_getRequestBuilder()->buildRatePayload($request, $this->getCurrencyCode());
     }
 
     protected function _buildRateResult(array $mapped): Mage_Shipping_Model_Rate_Result
