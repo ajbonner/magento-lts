@@ -240,7 +240,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
-     * @param  list<array<string, mixed>>                                                                             $events
+     * @param  list<array<string, mixed>>                                                                               $events
      * @return list<array{activity: string, deliverydate?: ?string, deliverytime?: ?string, deliverylocation?: string}>
      */
     private function mapScanEvents(array $events): array
