@@ -289,7 +289,6 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     }
 
     /**
-     * @param  Varien_Object          $request
      * @return array<string, mixed[]>
      */
     protected function _buildRatePayload(Varien_Object $request): array

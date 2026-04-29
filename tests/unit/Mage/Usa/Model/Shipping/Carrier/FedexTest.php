@@ -310,8 +310,6 @@ final class FedexTest extends OpenMageTest
 
     /**
      * @param  ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> $calls
-     * @param  RestClient                                                                            $stubClient
-     * @return ClientFactoryInterface
      */
     private function recordingFactory(ArrayObject $calls, RestClient $stubClient): ClientFactoryInterface
     {
