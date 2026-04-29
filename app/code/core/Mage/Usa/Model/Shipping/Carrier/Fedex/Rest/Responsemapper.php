@@ -77,7 +77,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
      *     shippeddate: ?string,
      *     signedby: ?string,
      *     weight: ?string,
-     *     progressdetail: list<array{activity: string, deliverydate?: string, deliverytime?: string, deliverylocation?: string}>,
+     *     progressdetail: list<array{activity: string, deliverydate?: ?string, deliverytime?: ?string, deliverylocation?: string}>,
      *     errors: list<array{severity: string, code: string, message: string}>
      * }
      */
@@ -127,10 +127,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
         return [
             'status' => (string) ($result['latestStatusDetail']['description'] ?? ''),
             'service' => (string) ($result['serviceDetail']['description'] ?? ''),
-            'deliverydate' => $deliveryAt !== null ? $this->formatDate($deliveryAt) : null,
-            'deliverytime' => $deliveryAt !== null ? $this->formatTime($deliveryAt) : null,
+            'deliverydate' => $this->formatDateTimeString($deliveryAt, 'Y-m-d'),
+            'deliverytime' => $this->formatDateTimeString($deliveryAt, 'H:i:s'),
             'deliverylocation' => is_array($deliveryLocation) ? $this->formatAddress($deliveryLocation) : null,
-            'shippeddate' => $shippedAt !== null ? $this->formatDate($shippedAt) : null,
+            'shippeddate' => $this->formatDateTimeString($shippedAt, 'Y-m-d'),
             'signedby' => (string) ($result['deliveryDetails']['receivedByName'] ?? ''),
             'weight' => $weight,
             'progressdetail' => $this->mapScanEvents($result['scanEvents'] ?? []),
@@ -241,20 +241,20 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
 
     /**
      * @param  list<array<string, mixed>>                                                                             $events
-     * @return list<array{activity: string, deliverydate?: string, deliverytime?: string, deliverylocation?: string}>
+     * @return list<array{activity: string, deliverydate?: ?string, deliverytime?: ?string, deliverylocation?: string}>
      */
     private function mapScanEvents(array $events): array
     {
         $out = [];
         foreach ($events as $event) {
-            $dateTime = (string) ($event['date'] ?? '');
             $entry = [
                 'activity' => (string) ($event['eventDescription'] ?? ''),
             ];
 
-            if ($dateTime !== '') {
-                $entry['deliverydate'] = $this->formatDate($dateTime);
-                $entry['deliverytime'] = $this->formatTime($dateTime);
+            $dateTime = $event['date'] ?? null;
+            if (is_string($dateTime) && $dateTime !== '') {
+                $entry['deliverydate'] = $this->formatDateTimeString($dateTime, 'Y-m-d');
+                $entry['deliverytime'] = $this->formatDateTimeString($dateTime, 'H:i:s');
             }
 
             $location = $event['scanLocation'] ?? null;
@@ -268,21 +268,16 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
         return $out;
     }
 
-    private function formatDate(string $iso): string
+    private function formatDateTimeString(?string $isoDateTime, string $format): ?string
     {
-        try {
-            return Carbon::parse($iso)->format('Y-m-d');
-        } catch (InvalidArgumentException) {
-            return '';
+        if ($isoDateTime === null) {
+            return null;
         }
-    }
 
-    private function formatTime(string $iso): string
-    {
         try {
-            return Carbon::parse($iso)->format('H:i:s');
+            return Carbon::parse($isoDateTime)->format($format);
         } catch (InvalidArgumentException) {
-            return '';
+            return null;
         }
     }
 
