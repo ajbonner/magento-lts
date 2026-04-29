@@ -49,10 +49,12 @@ final class FedexTest extends OpenMageTest
     public function testContainerTypesMatchesCoreShape(): void
     {
         $all = self::$subject->getContainerTypesAll();
+        self::assertIsArray($all);
         self::assertArrayHasKey('YOUR_PACKAGING', $all);
         self::assertArrayHasKey('FEDEX_ENVELOPE', $all);
 
         $filters = self::$subject->getContainerTypesFilter();
+        self::assertIsArray($filters);
         self::assertCount(4, $filters);
         self::assertSame(['FEDEX_ENVELOPE', 'FEDEX_PAK'], $filters[0]['containers']);
     }
@@ -258,6 +260,7 @@ final class FedexTest extends OpenMageTest
         ]);
         $fedex->setData('cache_enabled', false);
 
+        /** @var ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> $calls */
         $calls = new ArrayObject();
         $fedex->setData('rest_client_factory', $this->recordingFactory($calls, $stubClient));
 
@@ -283,6 +286,7 @@ final class FedexTest extends OpenMageTest
             'sandbox_mode' => '0',
         ]);
 
+        /** @var ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> $calls */
         $calls = new ArrayObject();
         $fedex->setData('rest_client_factory', $this->recordingFactory($calls, $stubClient));
 
@@ -304,13 +308,29 @@ final class FedexTest extends OpenMageTest
         self::assertInstanceOf(ClientFactory::class, $fedex->getData('rest_client_factory'));
     }
 
+    /**
+     * @param  ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> $calls
+     * @param  RestClient                                                                            $stubClient
+     * @return ClientFactoryInterface
+     */
     private function recordingFactory(ArrayObject $calls, RestClient $stubClient): ClientFactoryInterface
     {
         return new class ($calls, $stubClient) implements ClientFactoryInterface {
+            /** @var ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> */
+            private ArrayObject $calls;
+
+            private readonly RestClient $stubClient;
+
+            /**
+             * @param ArrayObject<int, array{client_id: string, client_secret: string, sandbox_mode: bool}> $calls
+             */
             public function __construct(
-                private ArrayObject $calls,
-                private readonly RestClient $stubClient,
-            ) {}
+                ArrayObject $calls,
+                RestClient $stubClient,
+            ) {
+                $this->calls = $calls;
+                $this->stubClient = $stubClient;
+            }
 
             public function create(
                 string $clientId,

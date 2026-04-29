@@ -193,22 +193,24 @@ final class RequestbuilderTest extends OpenMageTest
             [],
         );
 
-        $rs = $payload['requestedShipment'];
-        self::assertSame(1, $rs['totalPackageCount']);
-        self::assertCount(1, $rs['requestedPackageLineItems']);
-        self::assertArrayNotHasKey('dimensions', $rs['requestedPackageLineItems'][0]);
+        $result = $payload['requestedShipment'];
+        self::assertSame(1, $result['totalPackageCount']);
+        self::assertCount(1, $result['requestedPackageLineItems']);
+        self::assertArrayNotHasKey('dimensions', $result['requestedPackageLineItems'][0]);
     }
 
     public function testBuildsTrackingPayload(): void
     {
         $payload = $this->builder->buildTrackingPayload('123456789012');
         self::assertTrue($payload['includeDetailedScans']);
+        self::assertIsArray($payload['trackingInfo']);
         self::assertSame('123456789012', $payload['trackingInfo'][0]['trackingNumberInfo']['trackingNumber']);
     }
 
     public function testBuildsCancelShipmentPayload(): void
     {
         $payload = $this->builder->buildCancelShipmentPayload('510510510', '794644746111');
+        self::assertIsArray($payload['accountNumber']);
         self::assertSame('510510510', $payload['accountNumber']['value']);
         self::assertSame('794644746111', $payload['trackingNumber']);
         self::assertSame('DELETE_ONE_PACKAGE', $payload['deletionControl']);

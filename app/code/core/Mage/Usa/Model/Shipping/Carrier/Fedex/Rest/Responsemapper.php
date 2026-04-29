@@ -20,6 +20,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     public const SEVERITY_NOTE = 'NOTE';
 
     /**
+     * @param array<string, mixed> $json
      * @return array{
      *     rates: list<array{service_type: string, rated_type: string, currency: string, amount: float}>,
      *     alerts: list<array{severity: string, code: string, message: string}>,
@@ -66,6 +67,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param array<string, mixed> $json
      * @return array{
      *     status: ?string,
      *     service: ?string,
@@ -125,10 +127,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
         return [
             'status' => (string) ($result['latestStatusDetail']['description'] ?? ''),
             'service' => (string) ($result['serviceDetail']['description'] ?? ''),
-            'deliverydate' => $deliveryAt ? $this->formatDate($deliveryAt) : null,
-            'deliverytime' => $deliveryAt ? $this->formatTime($deliveryAt) : null,
-            'deliverylocation' => $deliveryLocation ? $this->formatAddress($deliveryLocation) : null,
-            'shippeddate' => $shippedAt ? $this->formatDate($shippedAt) : null,
+            'deliverydate' => $deliveryAt !== null ? $this->formatDate($deliveryAt) : null,
+            'deliverytime' => $deliveryAt !== null ? $this->formatTime($deliveryAt) : null,
+            'deliverylocation' => is_array($deliveryLocation) ? $this->formatAddress($deliveryLocation) : null,
+            'shippeddate' => $shippedAt !== null ? $this->formatDate($shippedAt) : null,
             'signedby' => (string) ($result['deliveryDetails']['receivedByName'] ?? ''),
             'weight' => $weight,
             'progressdetail' => $this->mapScanEvents($result['scanEvents'] ?? []),
@@ -137,6 +139,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param array<string, mixed> $json
      * @return array{
      *     tracking_number: string,
      *     master_tracking_number: string,
@@ -160,6 +163,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param  array<string, mixed>                                                                                          $json
      * @return array{cancelled: bool, message: string, errors: list<array{severity: string, code: string, message: string}>}
      */
     public function mapCancelReply(array $json): array
@@ -173,6 +177,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param  list<array<string, mixed>>                                   $alerts
      * @return list<array{severity: string, code: string, message: string}>
      */
     private function mapAlerts(array $alerts): array
@@ -190,6 +195,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param  array<string, mixed>                                         $json
      * @return list<array{severity: string, code: string, message: string}>
      */
     private function mapErrors(array $json): array
@@ -215,6 +221,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
         };
     }
 
+    /**
+     * @param  list<array<string, mixed>> $entries
+     * @return array<string, string>
+     */
     private function indexDateTimes(array $entries): array
     {
         $out = [];
@@ -230,6 +240,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
     }
 
     /**
+     * @param  list<array<string, mixed>>                                                                             $events
      * @return list<array{activity: string, deliverydate?: string, deliverytime?: string, deliverylocation?: string}>
      */
     private function mapScanEvents(array $events): array
@@ -246,8 +257,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
                 $entry['deliverytime'] = $this->formatTime($dateTime);
             }
 
-            $location = $event['scanLocation'] ?? [];
-            if ($location) {
+            $location = $event['scanLocation'] ?? null;
+            if (is_array($location) && $location !== []) {
                 $entry['deliverylocation'] = $this->formatAddress($location);
             }
 
@@ -275,17 +286,26 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
         }
     }
 
+    /**
+     * @param array<string, mixed> $address
+     */
     private function formatAddress(array $address): string
     {
-        $parts = array_filter([
-            $address['city'] ?? null,
-            $address['stateOrProvinceCode'] ?? null,
-            $address['countryCode'] ?? null,
-        ]);
+        $parts = array_filter(
+            [
+                $address['city'] ?? null,
+                $address['stateOrProvinceCode'] ?? null,
+                $address['countryCode'] ?? null,
+            ],
+            static fn($value): bool => $value !== null && $value !== '',
+        );
 
         return implode(', ', array_map(strval(...), $parts));
     }
 
+    /**
+     * @param list<array<string, mixed>> $packageDocuments
+     */
     private function buildLabel(array $packageDocuments): ?string
     {
         $label = null;
@@ -299,7 +319,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Responsemapper
 
         if ($label !== null) {
             $decodedLabel = base64_decode($label, true);
-            $label = $decodedLabel ? $decodedLabel : $label;
+            $label = $decodedLabel !== false ? $decodedLabel : $label;
         }
 
         return $label;

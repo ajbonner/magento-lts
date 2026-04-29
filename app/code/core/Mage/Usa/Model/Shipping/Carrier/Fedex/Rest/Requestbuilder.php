@@ -43,7 +43,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
      * Multi-piece rate payload for cubed shipments. Each container becomes one
      * `requestedPackageLineItems` entry with its own weight + dimensions.
      *
-     * @param list<Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Container> $containers
+     * @param  list<Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Container> $containers
+     * @return array<string, mixed[]>
      */
     public function buildRatePayloadForContainers(
         Varien_Object $raw,
@@ -113,7 +114,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
                 ],
             ],
             'pickupType' => $this->mapDropoffType((string) $raw->getDropoffType()),
-            'packagingType' => (string) $raw->getPackaging() ? (string) $raw->getPackaging() : 'YOUR_PACKAGING',
+            'packagingType' => (string) $raw->getPackaging() !== '' ? (string) $raw->getPackaging() : 'YOUR_PACKAGING',
             'rateRequestType' => ['LIST', 'ACCOUNT'],
             'totalPackageCount' => $totalPackageCount,
             'shippingChargesPayment' => [
@@ -222,10 +223,13 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
                     'phoneNumber' => (string) $request->getShipperContactPhoneNumber(),
                 ],
                 'address' => [
-                    'streetLines' => array_values(array_filter([
-                        (string) $request->getShipperAddressStreet1(),
-                        (string) $request->getShipperAddressStreet2(),
-                    ])),
+                    'streetLines' => array_values(array_filter(
+                        [
+                            (string) $request->getShipperAddressStreet1(),
+                            (string) $request->getShipperAddressStreet2(),
+                        ],
+                        static fn(string $value): bool => $value !== '',
+                    )),
                     'city' => (string) $request->getShipperAddressCity(),
                     'stateOrProvinceCode' => (string) $request->getShipperAddressStateOrProvinceCode(),
                     'postalCode' => (string) $request->getShipperAddressPostalCode(),
@@ -239,10 +243,13 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
                     'phoneNumber' => (string) $request->getRecipientContactPhoneNumber(),
                 ],
                 'address' => [
-                    'streetLines' => array_values(array_filter([
-                        (string) $request->getRecipientAddressStreet1(),
-                        (string) $request->getRecipientAddressStreet2(),
-                    ])),
+                    'streetLines' => array_values(array_filter(
+                        [
+                            (string) $request->getRecipientAddressStreet1(),
+                            (string) $request->getRecipientAddressStreet2(),
+                        ],
+                        static fn(string $value): bool => $value !== '',
+                    )),
                     'city' => (string) $request->getRecipientAddressCity(),
                     'stateOrProvinceCode' => (string) $request->getRecipientAddressStateOrProvinceCode(),
                     'postalCode' => (string) $request->getRecipientAddressPostalCode(),
@@ -251,7 +258,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
                 ],
             ]],
             'pickupType' => $this->mapDropoffType($dropoffType),
-            'packagingType' => (string) $request->getPackagingType() ? (string) $request->getPackagingType() : 'YOUR_PACKAGING',
+            'packagingType' => (string) $request->getPackagingType() !== '' ? (string) $request->getPackagingType() : 'YOUR_PACKAGING',
             'serviceType' => Mage_Usa_Model_Shipping_Carrier_Fedex::translateLegacyServiceType(
                 (string) $request->getShippingMethod(),
             ),
@@ -385,7 +392,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Requestbuilder
             ],
             'commodities' => [[
                 'numberOfPieces' => 1,
-                'description' => implode(', ', array_filter($itemsDesc)),
+                'description' => implode(', ', array_filter($itemsDesc, static fn(string $value): bool => $value !== '')),
                 'countryOfManufacture' => implode(',', array_unique($countriesOfManufacture)),
                 'weight' => [
                     'units' => $weightUnits,

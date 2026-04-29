@@ -22,6 +22,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Client
         private readonly FedEx $connector,
     ) {}
 
+    /**
+     * @param  array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
     public function getRates(array $payload): array
     {
         return $this->send(
@@ -31,6 +35,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Client
         );
     }
 
+    /**
+     * @param  array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
     public function track(array $payload): array
     {
         return $this->send(
@@ -40,6 +48,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Client
         );
     }
 
+    /**
+     * @param  array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
     public function processShipment(array $payload): array
     {
         return $this->send(
@@ -49,6 +61,10 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Client
         );
     }
 
+    /**
+     * @param  array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
     public function deleteShipment(array $payload): array
     {
         return $this->send(
@@ -58,6 +74,9 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex_Rest_Client
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function send(Closure $call): array
     {
         try {

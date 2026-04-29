@@ -233,7 +233,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
         $prepared = $this->_buildRateResult($mapped);
         $this->_result->append($prepared);
 
-        if ($prepared->getError()) {
+        if ($prepared->getError() === true) {
             return $prepared->getError();
         }
 
@@ -243,7 +243,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     }
 
     /**
-     * @param array<string, mixed[]> $ratesRequest
+     * @param  array<string, mixed[]> $ratesRequest
+     * @return array<string, mixed>
      */
     protected function _requestRates(array $ratesRequest): array
     {
@@ -296,6 +297,9 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
         return $this->_getRequestBuilder()->buildRatePayload($request, $this->getCurrencyCode());
     }
 
+    /**
+     * @param array<string, mixed> $mapped
+     */
     protected function _buildRateResult(array $mapped): Mage_Shipping_Model_Rate_Result
     {
         $allowedMethods = array_map(
@@ -351,6 +355,7 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
         $freeMethod = self::translateLegacyServiceType(
             (string) $this->getConfigData($this->_freeMethod),
         );
+        $this->_rawRequest ??= new Varien_Object();
 
         return $method === $freeMethod
             && $this->getConfigFlag('free_shipping_enable')
@@ -434,6 +439,9 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
         $request->setService($freeMethod);
     }
 
+    /**
+     * @return Mage_Shipping_Model_Rate_Result
+     */
     protected function _removeErrorsIfRateExist()
     {
         $rateResultExist = false;
@@ -456,6 +464,11 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
         return $this->_result;
     }
 
+    /**
+     * @param  string             $type
+     * @param  string             $code
+     * @return array|false|string
+     */
     public function getCode($type, $code = '')
     {
         $codes = [
@@ -724,7 +737,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     }
 
     /**
-     * @param array<array<string, mixed>, mixed> $mapped
+     * @param  array<array<string, mixed>, mixed> $mapped
+     * @return array<string, mixed>
      */
     protected function _trackingStatusData(array $mapped): array
     {
@@ -928,7 +942,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
      */
     public function getContainerTypesAll()
     {
-        return $this->getCode('packaging');
+        $packaging = $this->getCode('packaging');
+        return is_array($packaging) ? $packaging : false;
     }
 
     /**
@@ -938,7 +953,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
      */
     public function getContainerTypesFilter()
     {
-        return $this->getCode('containers_filter');
+        $filter = $this->getCode('containers_filter');
+        return is_array($filter) ? $filter : false;
     }
 
     /**
@@ -949,7 +965,8 @@ class Mage_Usa_Model_Shipping_Carrier_Fedex extends Mage_Usa_Model_Shipping_Carr
     #[Override]
     public function getDeliveryConfirmationTypes(?Varien_Object $params = null)
     {
-        return $this->getCode('delivery_confirmation_types');
+        $types = $this->getCode('delivery_confirmation_types');
+        return is_array($types) ? $types : [];
     }
 
     public function isCacheEnabled(): bool
